@@ -33,7 +33,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ category, onPress, style, c
       </View>
       <View style={styles.info}>
         <Text style={styles.name}>{category.name}</Text>
-        <Text style={styles.count}>{category.services.length} services</Text>
+        <Text style={styles.count}>{(category.serviceCount ?? category.services.length)} services</Text>
       </View>
       <View style={[styles.arrow, { backgroundColor: category.color + '15' }]}>
         <Text style={[styles.arrowText, { color: category.color }]}>→</Text>

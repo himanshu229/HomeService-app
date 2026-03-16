@@ -96,11 +96,13 @@ export interface ServiceCategory {
   color: string;
   bgColor: string;
   services: ServiceItem[];
+  serviceCount?: number;
 }
 
 export interface ServicesState {
   categories: ServiceCategory[];
   popularServices: ServiceItem[];
+  servicesByCategory: Record<string, ServiceItem[]>;
   recentlyBooked: ServiceItem[];
   selectedService: ServiceItem | null;
   isLoading: boolean;

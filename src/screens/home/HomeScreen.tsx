@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,44 +7,53 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Dimensions,
   StatusBar,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HomeStackParamList, ServiceItem } from '../../types';
+import { HomeStackParamList } from '../../types';
 import { COLORS, FONTS, RADIUS, SHADOWS, SPACING } from '../../utils/theme';
-import { SERVICE_CATEGORIES } from '../../utils/constants';
-import { MOCK_POPULAR_SERVICES } from '../../data/mockData';
 import CategoryCard from '../../components/service/CategoryCard';
 import ServiceCard from '../../components/service/ServiceCard';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { setSearchQuery, searchServices } from '../../store/slices/servicesSlice';
-
-const { width: _width } = Dimensions.get('window');
+import { useAppSelector } from '../../store';
+import { useServices } from '../../hooks/useServices';
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackParamList, 'HomeScreen'>;
 };
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
-  const { searchQuery, searchResults, recentlyBooked } = useAppSelector(state => state.services);
+  const {
+    categories,
+    popularServices,
+    searchQuery,
+    searchResults,
+    recentlyBooked,
+    isLoading,
+    loadCategories,
+    loadPopular,
+    search,
+    setQuery,
+  } = useServices();
   const [refreshing, setRefreshing] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  useEffect(() => {
+    if (categories.length === 0) loadCategories();
+    if (popularServices.length === 0) loadPopular();
+  }, []);
+
   const handleSearch = (text: string) => {
-    dispatch(setSearchQuery(text));
-    if (text.trim().length > 1) {
-      dispatch(searchServices(text.trim()));
-    }
+    setQuery(text);
+    if (text.trim().length > 1) search(text.trim());
   };
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    await Promise.all([loadCategories(), loadPopular()]);
+    setRefreshing(false);
   }, []);
 
   const greeting = () => {
@@ -94,7 +103,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
               returnKeyType="search"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => { dispatch(setSearchQuery('')); }}>
+              <TouchableOpacity onPress={() => { setQuery(''); }}>
                 <Text style={styles.clearIcon}>✕</Text>
               </TouchableOpacity>
             )}
@@ -133,10 +142,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesRow}>
-                {SERVICE_CATEGORIES.map(cat => (
+                {categories.map(cat => (
                   <CategoryCard
                     key={cat.id}
-                    category={cat as any}
+                    category={cat}
                     compact
                     onPress={() =>
                       navigation.navigate('ServiceList', {
@@ -158,7 +167,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={MOCK_POPULAR_SERVICES}
+                data={popularServices}
                 keyExtractor={s => s.id}
                 horizontal
                 showsHorizontalScrollIndicator={false}
