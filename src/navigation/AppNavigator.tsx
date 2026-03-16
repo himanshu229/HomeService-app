@@ -3,10 +3,8 @@ import { NavigationContainer, NavigationContainerRef } from '@react-navigation/n
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../store';
 import { loadUserFromStorage } from '../store/slices/authSlice';
-import { AuthStackParamList } from '../types';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
-import { COLORS } from '../utils/theme';
 
 const RootStack = createNativeStackNavigator();
 
@@ -17,7 +15,8 @@ const AppNavigator: React.FC = () => {
 
   useEffect(() => {
     dispatch(loadUserFromStorage());
-  }, [dispatch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <NavigationContainer ref={navigationRef}>

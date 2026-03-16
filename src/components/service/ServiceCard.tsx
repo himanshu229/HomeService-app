@@ -34,9 +34,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onPress, style, hori
                 <StarRating rating={service.rating} size={13} showCount count={service.reviewCount} />
               </View>
             )}
-            <View style={styles.metaRow}>
-              <Text style={styles.duration}>⏱ {service.duration}</Text>
-            </View>
           </View>
           <View style={styles.horizontalRight}>
             <Text style={styles.price}>
@@ -72,7 +69,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, onPress, style, hori
       )}
       <View style={styles.cardBottom}>
         <Text style={styles.cardPrice}>₹{service.price}</Text>
-        <Text style={styles.cardDuration}>{service.duration}</Text>
       </View>
     </TouchableOpacity>
   );

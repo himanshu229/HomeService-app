@@ -70,18 +70,12 @@ const ServiceDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Price & Duration strip */}
+        {/* Price & Warranty strip */}
         <View style={styles.infoStrip}>
           <View style={styles.infoItem}>
             <Text style={styles.infoIcon}>💰</Text>
             <Text style={styles.infoValue}>₹{service.price}</Text>
             <Text style={styles.infoLabel}>Starting from</Text>
-          </View>
-          <View style={styles.infoDivider} />
-          <View style={styles.infoItem}>
-            <Text style={styles.infoIcon}>⏱</Text>
-            <Text style={styles.infoValue}>{service.duration}</Text>
-            <Text style={styles.infoLabel}>Duration</Text>
           </View>
           <View style={styles.infoDivider} />
           <View style={styles.infoItem}>
@@ -161,7 +155,14 @@ const ServiceDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         ) : (
           <View style={styles.content}>
-            {reviews.length === 0 ? (
+            {/* Coming Soon */}
+            <View style={styles.comingSoonContainer}>
+              <Text style={styles.comingSoonEmoji}>🚀</Text>
+              <Text style={styles.comingSoonTitle}>Coming Soon</Text>
+              <Text style={styles.comingSoonSubtitle}>Reviews will be available shortly. Stay tuned!</Text>
+            </View>
+
+            {/* {reviews.length === 0 ? (
               <View style={styles.noReviews}>
                 <Text style={styles.noReviewsEmoji}>⭐</Text>
                 <Text style={styles.noReviewsText}>No reviews yet. Be the first!</Text>
@@ -184,7 +185,7 @@ const ServiceDetailScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.reviewComment}>{review.comment}</Text>
                 </View>
               ))
-            )}
+            )} */}
           </View>
         )}
         <View style={{ height: 100 }} />
@@ -312,8 +313,23 @@ const styles = StyleSheet.create({
   reviewComment: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, lineHeight: 20 },
   noReviews: { alignItems: 'center', paddingVertical: SPACING.xxl },
   noReviewsEmoji: { fontSize: 48, marginBottom: SPACING.md },
-  noReviewsText: { fontSize: FONTS.sizes.base, color: COLORS.textSecondary },
-  bottomBar: {
+  noReviewsText: { fontSize: FONTS.sizes.base, color: COLORS.textSecondary },  comingSoonContainer: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xl * 2,
+  },
+  comingSoonEmoji: { fontSize: 48, marginBottom: SPACING.md },
+  comingSoonTitle: {
+    fontSize: FONTS.sizes.xl,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+  },
+  comingSoonSubtitle: {
+    fontSize: FONTS.sizes.sm,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: SPACING.xl,
+  },  bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,

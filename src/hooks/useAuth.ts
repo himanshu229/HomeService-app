@@ -18,37 +18,37 @@ export const useAuth = () => {
 
   const handleSendOtp = useCallback(
     (phone: string) => dispatch(sendOtp(phone)),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleVerifyOtp = useCallback(
     (phone: string, otp: string) => dispatch(verifyOtp({ phone, otp })),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleCompleteProfile = useCallback(
     (payload: CompleteProfilePayload) => dispatch(completeProfile(payload)),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleLogout = useCallback(
     () => dispatch(logoutUser()),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleClearError = useCallback(
     () => dispatch(clearError()),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleLoadUser = useCallback(
     () => dispatch(loadUserFromStorage()),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const handleUpdateUser = useCallback(
     (data: Partial<User>) => dispatch(updateUser(data)),
-    [dispatch]
+    [] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   return {
