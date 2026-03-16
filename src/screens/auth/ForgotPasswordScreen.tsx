@@ -10,6 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ArrowLeft, KeyRound, Mail, MailCheck } from 'lucide-react-native';
 import { AuthStackParamList } from '../../types';
 import { COLORS, FONTS, SPACING } from '../../utils/theme';
 import Button from '../../components/common/Button';
@@ -48,7 +49,9 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.successContainer}>
-          <Text style={styles.successEmoji}>📧</Text>
+          <View style={{ marginBottom: SPACING.xl }}>
+            <MailCheck size={80} color={COLORS.primary} strokeWidth={1.5} />
+          </View>
           <Text style={styles.successTitle}>Check Your Email</Text>
           <Text style={styles.successText}>
             We've sent a password reset link to{'\n'}
@@ -73,12 +76,12 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
       <View style={styles.container}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <ArrowLeft size={20} color={COLORS.text} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <View style={styles.content}>
           <View style={styles.icon}>
-            <Text style={styles.iconEmoji}>🔑</Text>
+            <KeyRound size={48} color={COLORS.primary} strokeWidth={1.5} />
           </View>
           <Text style={styles.title}>Forgot Password?</Text>
           <Text style={styles.subtitle}>
@@ -96,7 +99,7 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
             returnKeyType="done"
             onSubmitEditing={handleSend}
             required
-            leftIcon={<Text style={styles.inputIcon}>✉️</Text>}
+            leftIcon={<Mail size={18} color={COLORS.textSecondary} />}
           />
 
           <Button
@@ -107,7 +110,8 @@ const ForgotPasswordScreen: React.FC<Props> = ({ navigation }) => {
           />
 
           <TouchableOpacity style={styles.loginRow} onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.loginText}>← Back to Login</Text>
+            <ArrowLeft size={14} color={COLORS.primary} />
+            <Text style={styles.loginText}> Back to Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -128,7 +132,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIcon: { fontSize: 20, fontWeight: '700', color: COLORS.text },
   content: { paddingHorizontal: SPACING.xl, paddingTop: SPACING.xl },
   icon: {
     width: 96,
@@ -140,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xl,
     alignSelf: 'center',
   },
-  iconEmoji: { fontSize: 48 },
+
   title: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   subtitle: {
     fontSize: FONTS.sizes.base,
@@ -150,8 +153,7 @@ const styles = StyleSheet.create({
     marginVertical: SPACING.md,
     marginBottom: SPACING.xl,
   },
-  inputIcon: { fontSize: 18 },
-  loginRow: { alignItems: 'center', marginTop: SPACING.xl },
+  loginRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: SPACING.xl },
   loginText: { fontSize: FONTS.sizes.sm, color: COLORS.primary, fontWeight: '600' },
   btn: { marginTop: SPACING.md },
   // Success
@@ -161,7 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: SPACING.xl,
   },
-  successEmoji: { fontSize: 80, marginBottom: SPACING.xl },
   successTitle: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   successText: {
     fontSize: FONTS.sizes.base,

@@ -1,8 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthState, LoginPayload, SignupPayload, User } from '../../types';
+import { AuthState, User, CompleteProfilePayload, VerifyOtpResponse } from '../../types';
 import { ASYNC_STORAGE_KEYS } from '../../utils/constants';
-import { authAPI } from '../../services/authService';
+import { authApi } from '../../api/auth.api';
 
 const initialState: AuthState = {
   user: null,
@@ -14,54 +14,48 @@ const initialState: AuthState = {
 };
 
 // ─── Async Thunks ─────────────────────────────────────────────
-export const loginUser = createAsyncThunk(
-  'auth/login',
-  async (payload: LoginPayload, { rejectWithValue }) => {
+export const sendOtp = createAsyncThunk(
+  'auth/sendOtp',
+  async (phone: string, { rejectWithValue }) => {
     try {
-      const response = await authAPI.login(payload);
-      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.AUTH_TOKEN, response.token);
-      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.USER_DATA, JSON.stringify(response.user));
-      return response;
+      await authApi.sendOtp(phone);
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Login failed');
+      return rejectWithValue(err.response?.data?.message || 'Failed to send OTP');
     }
   }
 );
 
-export const signupUser = createAsyncThunk(
-  'auth/signup',
-  async (payload: SignupPayload, { rejectWithValue }) => {
-    try {
-      const response = await authAPI.signup(payload);
-      return response;
-    } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Signup failed');
-    }
-  }
-);
-
-export const verifyOtp = createAsyncThunk(
+export const verifyOtp = createAsyncThunk<VerifyOtpResponse, { phone: string; otp: string }>(
   'auth/verifyOtp',
-  async (payload: { email: string; code: string }, { rejectWithValue }) => {
+  async ({ phone, otp }, { rejectWithValue }) => {
     try {
-      const response = await authAPI.verifyOtp(payload);
-      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.AUTH_TOKEN, response.accessToken);
-      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.USER_DATA, JSON.stringify(response.user));
-      return response;
+      const res = await authApi.verifyOtp(phone, otp);
+      const data = res.data.data;
+      // Only persist tokens for existing users; new users complete profile next
+      if (!data.isNewUser && data.accessToken && data.refreshToken && data.user) {
+        await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.AUTH_TOKEN, data.accessToken);
+        await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+        await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.USER_DATA, JSON.stringify(data.user));
+      }
+      return data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'OTP verification failed');
     }
   }
 );
 
-export const resendOtp = createAsyncThunk(
-  'auth/resendOtp',
-  async (email: string, { rejectWithValue }) => {
+export const completeProfile = createAsyncThunk(
+  'auth/completeProfile',
+  async (payload: CompleteProfilePayload, { rejectWithValue }) => {
     try {
-      await authAPI.sendOtp(email);
-      return { email };
+      const res = await authApi.completeProfile(payload);
+      const { accessToken, refreshToken, user } = res.data.data;
+      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.AUTH_TOKEN, accessToken);
+      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+      await AsyncStorage.setItem(ASYNC_STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+      return { token: accessToken, refreshToken, user };
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Failed to resend OTP');
+      return rejectWithValue(err.response?.data?.message || 'Failed to complete profile');
     }
   }
 );
@@ -70,10 +64,16 @@ export const loadUserFromStorage = createAsyncThunk(
   'auth/loadUser',
   async (_, { rejectWithValue }) => {
     try {
-      const token = await AsyncStorage.getItem(ASYNC_STORAGE_KEYS.AUTH_TOKEN);
-      const userStr = await AsyncStorage.getItem(ASYNC_STORAGE_KEYS.USER_DATA);
-      if (token && userStr) {
-        return { token, user: JSON.parse(userStr) as User };
+      const [token, refreshToken, userStr] = await AsyncStorage.multiGet([
+        ASYNC_STORAGE_KEYS.AUTH_TOKEN,
+        ASYNC_STORAGE_KEYS.REFRESH_TOKEN,
+        ASYNC_STORAGE_KEYS.USER_DATA,
+      ]);
+      const t  = token[1];
+      const rt = refreshToken[1];
+      const u  = userStr[1];
+      if (t && u) {
+        return { token: t, refreshToken: rt ?? null, user: JSON.parse(u) as User };
       }
       return null;
     } catch {
@@ -83,6 +83,7 @@ export const loadUserFromStorage = createAsyncThunk(
 );
 
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
+  try { await authApi.logout(); } catch { /* ignore network errors on logout */ }
   await AsyncStorage.multiRemove([
     ASYNC_STORAGE_KEYS.AUTH_TOKEN,
     ASYNC_STORAGE_KEYS.USER_DATA,
@@ -95,83 +96,77 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: state => {
+    clearError: (state) => {
       state.error = null;
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
-      if (state.user) {
-        state.user = { ...state.user, ...action.payload };
-      }
+      if (state.user) state.user = { ...state.user, ...action.payload };
     },
     setToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
       state.isAuthenticated = true;
     },
   },
-  extraReducers: builder => {
-    // Login
+  extraReducers: (builder) => {
+    // sendOtp
     builder
-      .addCase(loginUser.pending, state => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.isAuthenticated = true;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(sendOtp.pending, (state) => { state.isLoading = true; state.error = null; })
+      .addCase(sendOtp.fulfilled, (state) => { state.isLoading = false; })
+      .addCase(sendOtp.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
-    // Signup
+
+    // verifyOtp
     builder
-      .addCase(signupUser.pending, state => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(signupUser.fulfilled, state => {
-        state.isLoading = false;
-      })
-      .addCase(signupUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
-    // Verify OTP
-    builder
-      .addCase(verifyOtp.pending, state => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(verifyOtp.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(verifyOtp.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.token = action.payload.accessToken;
-        state.isAuthenticated = true;
+        if (!action.payload.isNewUser && action.payload.user && action.payload.accessToken) {
+          state.user            = action.payload.user;
+          state.token           = action.payload.accessToken;
+          state.refreshToken    = action.payload.refreshToken ?? null;
+          state.isAuthenticated = true;
+        }
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
-    // Load user
+
+    // completeProfile
+    builder
+      .addCase(completeProfile.pending, (state) => { state.isLoading = true; state.error = null; })
+      .addCase(completeProfile.fulfilled, (state, action) => {
+        state.isLoading       = false;
+        state.user            = action.payload.user;
+        state.token           = action.payload.token;
+        state.refreshToken    = action.payload.refreshToken;
+        state.isAuthenticated = true;
+      })
+      .addCase(completeProfile.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // loadUser
     builder
       .addCase(loadUserFromStorage.fulfilled, (state, action) => {
         if (action.payload) {
-          state.user = action.payload.user;
-          state.token = action.payload.token;
+          state.user            = action.payload.user;
+          state.token           = action.payload.token;
+          state.refreshToken    = action.payload.refreshToken;
           state.isAuthenticated = true;
         }
         state.isLoading = false;
       })
-      .addCase(loadUserFromStorage.rejected, state => {
-        state.isLoading = false;
-      });
-    // Logout
-    builder.addCase(logoutUser.fulfilled, state => {
-      state.user = null;
-      state.token = null;
-      state.refreshToken = null;
+      .addCase(loadUserFromStorage.rejected, (state) => { state.isLoading = false; });
+
+    // logout
+    builder.addCase(logoutUser.fulfilled, (state) => {
+      state.user            = null;
+      state.token           = null;
+      state.refreshToken    = null;
       state.isAuthenticated = false;
     });
   },
@@ -179,3 +174,4 @@ const authSlice = createSlice({
 
 export const { clearError, updateUser, setToken } = authSlice.actions;
 export default authSlice.reducer;
+

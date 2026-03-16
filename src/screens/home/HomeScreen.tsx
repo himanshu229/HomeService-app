@@ -10,21 +10,19 @@ import {
   Dimensions,
   StatusBar,
   RefreshControl,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HomeStackParamList, ServiceItem } from '../../types';
 import { COLORS, FONTS, RADIUS, SHADOWS, SPACING } from '../../utils/theme';
-import { BANNERS, SERVICE_CATEGORIES } from '../../utils/constants';
+import { SERVICE_CATEGORIES } from '../../utils/constants';
 import { MOCK_POPULAR_SERVICES } from '../../data/mockData';
 import CategoryCard from '../../components/service/CategoryCard';
 import ServiceCard from '../../components/service/ServiceCard';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { setSearchQuery, searchServices } from '../../store/slices/servicesSlice';
 
-const { width } = Dimensions.get('window');
-const BANNER_WIDTH = width - SPACING.xl * 2;
+const { width: _width } = Dimensions.get('window');
 
 type Props = {
   navigation: NativeStackNavigationProp<HomeStackParamList, 'HomeScreen'>;
@@ -34,7 +32,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector(state => state.auth);
   const { searchQuery, searchResults, recentlyBooked } = useAppSelector(state => state.services);
-  const [activeBanner, setActiveBanner] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -57,20 +54,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     return 'Good Evening';
   };
 
-  const renderBanner = ({ item }: { item: typeof BANNERS[0] }) => (
-    <View style={[styles.bannerCard, { backgroundColor: item.bgColor, width: BANNER_WIDTH }]}>
-      <View style={styles.bannerContent}>
-        <View style={styles.bannerLeft}>
-          <Text style={styles.bannerTitle}>{item.title}</Text>
-          <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-          <View style={styles.bannerCodeRow}>
-            <Text style={styles.bannerCode}>Use: {item.code}</Text>
-          </View>
-        </View>
-        <Text style={styles.bannerEmoji}>❄️</Text>
-      </View>
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -141,31 +124,6 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
         {!searchQuery && (
           <>
-            {/* Seasonal Banners */}
-            <View style={styles.section}>
-              <FlatList
-                data={BANNERS}
-                keyExtractor={i => i.id}
-                renderItem={renderBanner}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                snapToInterval={BANNER_WIDTH + SPACING.md}
-                decelerationRate="fast"
-                contentContainerStyle={{ paddingHorizontal: SPACING.xl, gap: SPACING.md }}
-                onScroll={e => {
-                  const offset = e.nativeEvent.contentOffset.x;
-                  setActiveBanner(Math.round(offset / (BANNER_WIDTH + SPACING.md)));
-                }}
-              />
-              {/* Dots */}
-              <View style={styles.dots}>
-                {BANNERS.map((_, i) => (
-                  <View key={i} style={[styles.dot, i === activeBanner && styles.dotActive]} />
-                ))}
-              </View>
-            </View>
-
             {/* Quick Categories */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -332,29 +290,6 @@ const styles = StyleSheet.create({
   },
   seeAll: { fontSize: FONTS.sizes.sm, color: COLORS.primary, fontWeight: '600' },
   categoriesRow: { paddingRight: SPACING.xl },
-  // Banner
-  bannerCard: {
-    borderRadius: RADIUS.xl,
-    padding: SPACING.lg,
-    overflow: 'hidden',
-  },
-  bannerContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bannerLeft: { flex: 1 },
-  bannerTitle: { fontSize: FONTS.sizes.lg, fontWeight: '800', color: COLORS.white },
-  bannerSubtitle: { fontSize: FONTS.sizes.sm, color: 'rgba(255,255,255,0.85)', marginTop: 4 },
-  bannerCodeRow: {
-    marginTop: SPACING.sm,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: RADIUS.sm,
-  },
-  bannerCode: { fontSize: FONTS.sizes.xs, color: COLORS.white, fontWeight: '700' },
-  bannerEmoji: { fontSize: 56 },
-  dots: { flexDirection: 'row', justifyContent: 'center', marginTop: SPACING.sm, gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.gray300 },
-  dotActive: { width: 18, backgroundColor: COLORS.primary },
   // Why section
   whySection: {
     backgroundColor: COLORS.primary,

@@ -3,12 +3,14 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './slices/authSlice';
 import servicesReducer from './slices/servicesSlice';
 import bookingReducer from './slices/bookingSlice';
+import technicianReducer from './slices/technicianSlice';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
-    services: servicesReducer,
-    booking: bookingReducer,
+    auth:       authReducer,
+    services:   servicesReducer,
+    booking:    bookingReducer,
+    technician: technicianReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, StatusBar, Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Snowflake } from 'lucide-react-native';
 import { AuthStackParamList } from '../../types';
 import { COLORS, FONTS } from '../../utils/theme';
 import { useAppSelector } from '../../store';
@@ -70,7 +71,7 @@ const SplashScreen: React.FC<Props> = ({ navigation }) => {
 
       <Animated.View style={[styles.logoContainer, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}>
         <View style={styles.logoFrame}>
-          <Text style={styles.logoEmoji}>❄️</Text>
+          <Snowflake size={52} color={COLORS.white} strokeWidth={2} />
         </View>
         <Text style={styles.appName}>SummerFix</Text>
       </Animated.View>
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-  logoEmoji: { fontSize: 52 },
+
   appName: {
     fontSize: FONTS.sizes.hero,
     fontWeight: '900',

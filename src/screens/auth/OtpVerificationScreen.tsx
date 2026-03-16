@@ -11,11 +11,12 @@ import {
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
+import { ShieldCheck, ArrowLeft } from 'lucide-react-native';
 import { AuthStackParamList } from '../../types';
 import { COLORS, FONTS, RADIUS, SPACING } from '../../utils/theme';
 import Button from '../../components/common/Button';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { verifyOtp, resendOtp } from '../../store/slices/authSlice';
+import { verifyOtp, sendOtp } from '../../store/slices/authSlice';
 
 type Props = {
   navigation: NativeStackNavigationProp<AuthStackParamList, 'OtpVerification'>;
@@ -25,7 +26,7 @@ type Props = {
 const OTP_LENGTH = 6;
 
 const OtpVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { phone, email, mode } = route.params;
+  const { phone } = route.params;
   const dispatch = useAppDispatch();
   const { isLoading } = useAppSelector(state => state.auth);
   const [resending, setResending] = useState(false);
@@ -45,12 +46,11 @@ const OtpVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
     const cleanText = text.replace(/[^0-9]/g, '');
     const newOtp = [...otp];
 
-    // Handle paste
+    // Handle paste of full OTP
     if (cleanText.length > 1) {
       const pasted = cleanText.slice(0, OTP_LENGTH);
-      const arr = pasted.split('');
       for (let i = 0; i < OTP_LENGTH; i++) {
-        newOtp[i] = arr[i] || '';
+        newOtp[i] = pasted[i] || '';
       }
       setOtp(newOtp);
       inputs.current[OTP_LENGTH - 1]?.focus();
@@ -79,23 +79,29 @@ const OtpVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
       Alert.alert('Invalid OTP', 'Please enter the complete 6-digit OTP');
       return;
     }
-    const result = await dispatch(verifyOtp({ email, code: otpString }));
+    const result = await dispatch(verifyOtp({ phone, otp: otpString }));
     if (verifyOtp.rejected.match(result)) {
       Alert.alert('Verification Failed', result.payload as string || 'Invalid OTP');
+      return;
     }
+    if (verifyOtp.fulfilled.match(result) && result.payload.isNewUser) {
+      // New user — collect profile details
+      navigation.navigate('CompleteProfile', { phone });
+    }
+    // Existing user — isAuthenticated is now true; AppNavigator will redirect to Main
   };
 
   const handleResend = async () => {
     setResending(true);
-    const result = await dispatch(resendOtp(email));
+    const result = await dispatch(sendOtp(phone));
     setResending(false);
-    if (resendOtp.rejected.match(result)) {
+    if (sendOtp.rejected.match(result)) {
       Alert.alert('Error', result.payload as string || 'Failed to resend OTP');
     } else {
       setOtp(Array(OTP_LENGTH).fill(''));
       setCountdown(30);
       inputs.current[0]?.focus();
-      Alert.alert('OTP Sent', `A new OTP has been sent to ${email}`);
+      Alert.alert('OTP Sent', `A new OTP has been sent to +91 ${phone}`);
     }
   };
 
@@ -104,12 +110,12 @@ const OtpVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backIcon}>←</Text>
+        <ArrowLeft size={20} color={COLORS.text} strokeWidth={2.5} />
       </TouchableOpacity>
 
       <View style={styles.content}>
         <View style={styles.illustration}>
-          <Text style={styles.illustrationEmoji}>📱</Text>
+          <ShieldCheck size={48} color={COLORS.primary} strokeWidth={1.5} />
         </View>
 
         <Text style={styles.title}>Verify Your Number</Text>
@@ -118,7 +124,7 @@ const OtpVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.phone}>+91 {phone}</Text>
         </Text>
 
-        {/* OTP Input */}
+        {/* OTP boxes */}
         <View style={styles.otpContainer}>
           {otp.map((digit, index) => (
             <TextInput
@@ -135,9 +141,6 @@ const OtpVerificationScreen: React.FC<Props> = ({ navigation, route }) => {
             />
           ))}
         </View>
-
-        {/* Demo OTP hint */}
-        <Text style={styles.demoHint}>Demo OTP: 123456</Text>
 
         <Button
           title={isLoading ? 'Verifying...' : 'Verify OTP'}
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backIcon: { fontSize: 20, fontWeight: '700', color: COLORS.text },
+
   content: {
     flex: 1,
     paddingHorizontal: SPACING.xl,
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: SPACING.xl,
   },
-  illustrationEmoji: { fontSize: 48 },
+
   title: { fontSize: FONTS.sizes.xxl, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
   subtitle: {
     fontSize: FONTS.sizes.base,
@@ -202,7 +205,7 @@ const styles = StyleSheet.create({
   otpContainer: {
     flexDirection: 'row',
     gap: SPACING.sm,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.xl,
   },
   otpInput: {
     width: 48,
@@ -219,14 +222,10 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     backgroundColor: COLORS.primary + '10',
   },
-  demoHint: {
-    fontSize: FONTS.sizes.xs,
-    color: COLORS.textSecondary,
-    marginBottom: SPACING.xl,
-  },
   resendRow: { marginTop: SPACING.xl },
   resendCountdown: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary },
   resendLink: { fontSize: FONTS.sizes.sm, color: COLORS.primary, fontWeight: '700' },
 });
 
 export default OtpVerificationScreen;
+

@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Booking, BookingDraft, BookingState } from '../../types';
-import { MOCK_BOOKINGS } from '../../data/mockData';
-import { bookingAPI } from '../../services/bookingService';
+import { bookingApi } from '../../api/booking.api';
 
 const initialState: BookingState = {
-  bookings: MOCK_BOOKINGS,
+  bookings: [],
   activeBooking: null,
   currentBookingDraft: {},
   isLoading: false,
@@ -15,8 +14,8 @@ export const createBooking = createAsyncThunk(
   'booking/create',
   async (draft: BookingDraft, { rejectWithValue }) => {
     try {
-      const response = await bookingAPI.createBooking(draft);
-      return response;
+      const res = await bookingApi.create(draft);
+      return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Booking failed');
     }
@@ -27,8 +26,8 @@ export const fetchUserBookings = createAsyncThunk(
   'booking/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await bookingAPI.getUserBookings();
-      return response;
+      const res = await bookingApi.getAll();
+      return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch bookings');
     }
@@ -39,8 +38,8 @@ export const fetchBookingById = createAsyncThunk(
   'booking/fetchOne',
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await bookingAPI.getBookingById(id);
-      return response;
+      const res = await bookingApi.getById(id);
+      return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Booking not found');
     }
@@ -51,7 +50,7 @@ export const cancelBooking = createAsyncThunk(
   'booking/cancel',
   async (id: string, { rejectWithValue }) => {
     try {
-      await bookingAPI.cancelBooking(id);
+      await bookingApi.cancel(id);
       return id;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Cannot cancel booking');
@@ -115,10 +114,10 @@ const bookingSlice = createSlice({
     builder
       .addCase(cancelBooking.fulfilled, (state, action) => {
         state.bookings = state.bookings.map(b =>
-          b.id === action.payload ? { ...b, status: 'cancelled' } : b
+          b.id === action.payload ? { ...b, status: 'CANCELLED' as const } : b
         );
         if (state.activeBooking?.id === action.payload) {
-          state.activeBooking = { ...state.activeBooking, status: 'cancelled' };
+          state.activeBooking = { ...state.activeBooking, status: 'CANCELLED' };
         }
       });
   },

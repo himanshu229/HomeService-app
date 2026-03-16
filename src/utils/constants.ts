@@ -1,8 +1,7 @@
-export const APP_NAME = 'SummerFix';
-export const APP_TAGLINE = 'Home Appliance Services';
-
-export const API_BASE_URL = 'http://10.0.2.2:8080/api'; // Android emulator
-// export const API_BASE_URL = 'http://localhost:5000/api'; // iOS simulator
+import { APP_NAME as _APP_NAME, APP_TAGLINE as _APP_TAGLINE, API_BASE_URL as _API_BASE_URL } from '@env';
+export const APP_NAME: string    = _APP_NAME;
+export const APP_TAGLINE: string = _APP_TAGLINE;
+export const API_BASE_URL: string = _API_BASE_URL;
 
 export const ASYNC_STORAGE_KEYS = {
   AUTH_TOKEN: '@summerfix_auth_token',
@@ -106,36 +105,7 @@ export const PAYMENT_METHODS = [
   { id: 'wallet', name: 'Wallet', icon: '👜', description: 'SummerFix Wallet' },
 ];
 
-export const REGEX = {
-  EMAIL: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-  PHONE: /^[6-9]\d{9}$/,
-  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
-  OTP: /^\d{6}$/,
-};
+import { REGEX } from './common';
+export { REGEX };
 
-export const BANNERS = [
-  {
-    id: '1',
-    title: 'Summer Special Offer!',
-    subtitle: 'Get 30% off on AC services',
-    code: 'SUMMER30',
-    bgColor: '#1A73E8',
-    textColor: '#FFFFFF',
-  },
-  {
-    id: '2',
-    title: 'Free AC Cleaning',
-    subtitle: 'On booking AC repair above ₹500',
-    code: 'FREECLEAN',
-    bgColor: '#FF6B35',
-    textColor: '#FFFFFF',
-  },
-  {
-    id: '3',
-    title: 'Beat the Heat!',
-    subtitle: 'All cooling services at best prices',
-    code: 'COOLDOWN',
-    bgColor: '#00BCD4',
-    textColor: '#FFFFFF',
-  },
-];
+

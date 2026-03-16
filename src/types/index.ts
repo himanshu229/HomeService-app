@@ -1,27 +1,39 @@
 // ─── User Types ───────────────────────────────────────────────
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
+
 export interface User {
   id: string;
-  name: string;
-  email: string;
-  phone: string;
+  phone: string;          // primary identifier
+  firstName: string;
+  lastName: string;
+  gender: Gender;
+  dob: string;
+  email?: string;
+  isVerified: boolean;
+  isActive?: boolean;
   avatar?: string;
-  addresses: Address[];
+  addresses?: Address[];
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface Address {
   id: string;
-  label: string; // Home, Work, Other
-  fullAddress: string;
+  label: string;          // Home | Work | Other
+  street: string;
   city: string;
   state: string;
   pincode: string;
-  lat?: number;
-  lng?: number;
+  latitude?: number;
+  longitude?: number;
   isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // ─── Auth Types ───────────────────────────────────────────────
+export type OtpType = 'SIGNUP' | 'LOGIN' | 'FORGOT_PASSWORD';
+
 export interface AuthState {
   user: User | null;
   token: string | null;
@@ -31,21 +43,35 @@ export interface AuthState {
   error: string | null;
 }
 
-export interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-export interface SignupPayload {
-  name: string;
-  email: string;
+export interface SendOtpPayload {
   phone: string;
-  password: string;
 }
 
-export interface OtpPayload {
+export interface VerifyOtpPayload {
   phone: string;
   otp: string;
+}
+
+export interface CompleteProfilePayload {
+  phone: string;
+  firstName: string;
+  lastName: string;
+  gender: Gender;
+  dob: string;            // ISO date string e.g. '1995-06-15'
+  email?: string;
+}
+
+export interface VerifyOtpResponse {
+  isNewUser: boolean;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: User;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
 }
 
 // ─── Service Types ────────────────────────────────────────────
@@ -102,30 +128,34 @@ export interface Booking {
   id: string;
   userId: string;
   serviceId: string;
-  serviceName: string;
-  serviceCategory: string;
+  serviceName?: string;
+  serviceCategory?: string;
   technician?: Technician;
   status: BookingStatus;
   scheduledDate: string;
-  timeSlot: string;
-  address: Address;
+  scheduledSlot: string;
+  addressId?: string;
+  address?: Address;
   notes?: string;
-  price: number;
-  finalAmount?: number;
-  paymentMethod?: string;
-  paymentStatus: 'pending' | 'paid' | 'refunded';
+  totalAmount: number;
+  paymentMethod: PaymentMethodType;
+  paymentStatus: PaymentStatusType;
+  completedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type BookingStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'technician_assigned'
-  | 'on_the_way'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled';
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'TECHNICIAN_ASSIGNED'
+  | 'ON_THE_WAY'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export type PaymentMethodType = 'CASH' | 'UPI' | 'CARD' | 'WALLET';
+export type PaymentStatusType = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 
 export interface BookingState {
   bookings: Booking[];
@@ -136,15 +166,13 @@ export interface BookingState {
 }
 
 export interface BookingDraft {
-  serviceId: string;
-  serviceName: string;
-  serviceCategory: string;
-  price: number;
+  serviceId:     string;
   scheduledDate: string;
-  timeSlot: string;
-  address: Address;
-  notes: string;
-  paymentMethod: string;
+  scheduledSlot: string;
+  addressId:     string;
+  paymentMethod: PaymentMethodType;
+  totalAmount:   number;
+  notes?:        string;
 }
 
 // ─── Payment Types ────────────────────────────────────────────
@@ -182,10 +210,9 @@ export interface Review {
 export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
-  Signup: undefined;
-  OtpVerification: { phone: string; email: string; mode: 'signup' | 'forgot' };
+  OtpVerification: { phone: string };
+  CompleteProfile: { phone: string };
   ForgotPassword: undefined;
-  ResetPassword: { token: string };
 };
 
 export type MainTabParamList = {

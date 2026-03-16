@@ -1,11 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { ServiceItem, ServicesState } from '../../types';
-import { SERVICE_CATEGORIES } from '../../utils/constants';
-import { MOCK_POPULAR_SERVICES } from '../../data/mockData';
+import { serviceApi } from '../../api/service.api';
 
 const initialState: ServicesState = {
-  categories: SERVICE_CATEGORIES as any[],
-  popularServices: MOCK_POPULAR_SERVICES,
+  categories: [],
+  popularServices: [],
   recentlyBooked: [],
   selectedService: null,
   isLoading: false,
@@ -18,8 +17,8 @@ export const fetchCategories = createAsyncThunk(
   'services/fetchCategories',
   async (_, { rejectWithValue }) => {
     try {
-      // In production, replace with real API call
-      return SERVICE_CATEGORIES;
+      const res = await serviceApi.getCategories();
+      return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch categories');
     }
@@ -30,8 +29,8 @@ export const fetchServicesByCategory = createAsyncThunk(
   'services/fetchByCategory',
   async (categoryId: string, { rejectWithValue }) => {
     try {
-      const category = SERVICE_CATEGORIES.find(c => c.id === categoryId);
-      return category?.services || [];
+      const res = await serviceApi.getByCategory(categoryId);
+      return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch services');
     }
@@ -42,15 +41,8 @@ export const searchServices = createAsyncThunk(
   'services/search',
   async (query: string, { rejectWithValue }) => {
     try {
-      const allServices = SERVICE_CATEGORIES.flatMap(cat =>
-        cat.services.map(s => ({ ...s, category: cat.name }))
-      );
-      const q = query.toLowerCase();
-      return allServices.filter(
-        s =>
-          s.name.toLowerCase().includes(q) ||
-          (s.category || '').toLowerCase().includes(q)
-      ) as ServiceItem[];
+      const res = await serviceApi.search(query);
+      return res.data.data;
     } catch (err: any) {
       return rejectWithValue('Search failed');
     }

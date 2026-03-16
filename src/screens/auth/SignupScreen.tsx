@@ -12,6 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ArrowLeft, User, Mail, Smartphone, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { AuthStackParamList } from '../../types';
 import { COLORS, FONTS, RADIUS, SPACING } from '../../utils/theme';
 import Button from '../../components/common/Button';
@@ -73,7 +74,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.backIcon}>←</Text>
+            <ArrowLeft size={20} color={COLORS.text} strokeWidth={2.5} />
           </TouchableOpacity>
           <View style={styles.headerText}>
             <Text style={styles.title}>Create Account</Text>
@@ -93,7 +94,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             returnKeyType="next"
             onSubmitEditing={() => emailRef.current?.focus()}
             required
-            leftIcon={<Text style={styles.icon}>👤</Text>}
+            leftIcon={<User size={18} color={COLORS.textSecondary} />}
           />
           <Input
             ref={emailRef}
@@ -107,7 +108,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             returnKeyType="next"
             onSubmitEditing={() => phoneRef.current?.focus()}
             required
-            leftIcon={<Text style={styles.icon}>✉️</Text>}
+            leftIcon={<Mail size={18} color={COLORS.textSecondary} />}
           />
           <Input
             ref={phoneRef}
@@ -121,7 +122,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
             required
-            leftIcon={<Text style={styles.icon}>📱</Text>}
+            leftIcon={<Smartphone size={18} color={COLORS.textSecondary} />}
           />
           <Input
             ref={passwordRef}
@@ -134,8 +135,11 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             returnKeyType="next"
             onSubmitEditing={() => confirmRef.current?.focus()}
             required
-            leftIcon={<Text style={styles.icon}>🔒</Text>}
-            rightIcon={<Text style={styles.icon}>{showPassword ? '🙈' : '👁'}</Text>}
+            leftIcon={<Lock size={18} color={COLORS.textSecondary} />}
+            rightIcon={showPassword
+              ? <EyeOff size={18} color={COLORS.textSecondary} />
+              : <Eye size={18} color={COLORS.textSecondary} />
+            }
             onRightIconPress={() => setShowPassword(p => !p)}
           />
           <Input
@@ -149,7 +153,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             returnKeyType="done"
             onSubmitEditing={handleSignup}
             required
-            leftIcon={<Text style={styles.icon}>🔒</Text>}
+            leftIcon={<Lock size={18} color={COLORS.textSecondary} />}
           />
 
           <Text style={styles.terms}>
@@ -198,12 +202,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: SPACING.md,
   },
-  backIcon: { fontSize: 20, fontWeight: '700', color: COLORS.text },
+
   headerText: {},
   title: { fontSize: FONTS.sizes.xxxl, fontWeight: '800', color: COLORS.text },
   subtitle: { fontSize: FONTS.sizes.sm, color: COLORS.textSecondary, marginTop: 4 },
   form: { paddingHorizontal: SPACING.xl },
-  icon: { fontSize: 18 },
+
   terms: {
     fontSize: FONTS.sizes.xs,
     color: COLORS.textSecondary,
