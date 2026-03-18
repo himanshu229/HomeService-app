@@ -25,16 +25,27 @@ const toServiceItem = (svc: any): ServiceItem => ({
   isPopular:   svc.popular ?? svc.isPopular,
 });
 
-const toServiceCategory = (cat: any): ServiceCategory => ({
-  id:           cat.id,
-  name:         cat.name,
-  icon:         cat.slug ?? cat.icon ?? '',
-  emoji:        cat.emoji,
-  color:        cat.color,
-  bgColor:      cat.bgColor ?? (cat.color + '20'),
-  services:     (cat.services ?? []).map(toServiceItem),
-  serviceCount: cat._count?.services ?? cat.serviceCount ?? cat.services?.length ?? 0,
-});
+// Palette of fallback colors cycled per category index
+const CATEGORY_COLORS = [
+  '#1A73E8', '#E53935', '#43A047', '#FB8C00',
+  '#8E24AA', '#00ACC1', '#F4511E', '#3949AB',
+];
+
+const toServiceCategory = (cat: any, index = 0): ServiceCategory => {
+  const fallbackColor = CATEGORY_COLORS[index % CATEGORY_COLORS.length];
+  const color   = cat.color   ?? fallbackColor;
+  const bgColor = cat.bgColor ?? (color + '20');
+  return ({
+    id:           cat.id,
+    name:         cat.name,
+    icon:         cat.slug ?? cat.icon ?? '',
+    emoji:        cat.emoji,
+    color,
+    bgColor,
+    services:     (cat.services ?? []).map(toServiceItem),
+    serviceCount: cat._count?.services ?? cat.serviceCount ?? cat.services?.length ?? 0,
+  });
+};
 
 // ── Initial state ─────────────────────────────────────────────────────────────
 
@@ -57,7 +68,7 @@ export const fetchCategories = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const res = await serviceApi.getCategories();
-      return (res.data.data as any[]).map(toServiceCategory);
+      return (res.data.data as any[]).map((cat, i) => toServiceCategory(cat, i));
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Failed to fetch categories');
     }

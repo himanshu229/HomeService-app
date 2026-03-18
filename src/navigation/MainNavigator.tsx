@@ -8,7 +8,7 @@ import { COLORS, FONTS, SHADOWS } from '../utils/theme';
 // Home Stack Screens
 import HomeScreen from '../screens/home/HomeScreen';
 import ServiceCategoriesScreen from '../screens/services/ServiceCategoriesScreen';
-import ServiceListScreen from '../screens/services/ServiceCategoriesScreen';
+import ServiceListScreen from '../screens/services/ServiceListScreen';
 import ServiceDetailScreen from '../screens/services/ServiceDetailScreen';
 import BookingScreen from '../screens/booking/BookingScreen';
 import BookingConfirmationScreen from '../screens/booking/BookingConfirmationScreen';
