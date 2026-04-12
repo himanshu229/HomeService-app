@@ -26,7 +26,7 @@ const ProfileScreen: React.FC = () => {
   const { user } = useAppSelector(state => state.auth);
   const { bookings } = useAppSelector(state => state.booking);
 
-  const completedBookings = bookings.filter(b => b.status === 'completed').length;
+  const completedBookings = bookings.filter(b => b.status === 'COMPLETED').length;
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [

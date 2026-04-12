@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { MainTabParamList, HomeStackParamList } from '../types';
+import { MainTabParamList, HomeStackParamList, ServicesStackParamList, BookingsStackParamList } from '../types';
 import { COLORS, FONTS, SHADOWS } from '../utils/theme';
 
 // Home Stack Screens
@@ -24,6 +24,8 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const ServicesStack = createNativeStackNavigator<ServicesStackParamList>();
+const BookingsStack = createNativeStackNavigator<BookingsStackParamList>();
 
 // ─── Home Stack ───────────────────────────────────────────────
 const HomeStackNavigator: React.FC = () => (
@@ -40,6 +42,30 @@ const HomeStackNavigator: React.FC = () => (
     <HomeStack.Screen name="AddressManager" component={AddressManagerScreen} />
     <HomeStack.Screen name="EditProfile" component={EditProfileScreen} />
   </HomeStack.Navigator>
+);
+
+// ─── Services Stack (fixes bottom-tab navigation bug) ─────────────────────
+// The Services tab previously pointed to ServiceCategoriesScreen directly,
+// which meant navigation.navigate('ServiceList', ...) had no parent stack
+// to push onto. Wrapping it in its own stack fixes the bug.
+const ServicesStackNavigator: React.FC = () => (
+  <ServicesStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+    <ServicesStack.Screen name="ServiceCategories" component={ServiceCategoriesScreen} />
+    <ServicesStack.Screen name="ServiceList" component={ServiceListScreen} />
+    <ServicesStack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
+    <ServicesStack.Screen name="Booking" component={BookingScreen} />
+    <ServicesStack.Screen name="BookingConfirmation" component={BookingConfirmationScreen} />
+    <ServicesStack.Screen name="BookingTracking" component={BookingTrackingScreen} />
+  </ServicesStack.Navigator>
+);
+
+// ─── Bookings Stack ───────────────────────────────────────────
+const BookingsStackNavigator: React.FC = () => (
+  <BookingsStack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+    <BookingsStack.Screen name="BookingHistory" component={BookingHistoryScreen} />
+    <BookingsStack.Screen name="BookingTracking" component={BookingTrackingScreen} />
+    <BookingsStack.Screen name="Review" component={ReviewScreen} />
+  </BookingsStack.Navigator>
 );
 
 // ─── Custom Tab Bar Icon ──────────────────────────────────────
@@ -78,7 +104,7 @@ const MainNavigator: React.FC = () => (
     />
     <Tab.Screen
       name="Services"
-      component={ServiceCategoriesScreen}
+      component={ServicesStackNavigator}
       options={{
         tabBarIcon: ({ focused }) => (
           <TabIcon emoji="🔧" label="Services" focused={focused} />
@@ -87,7 +113,7 @@ const MainNavigator: React.FC = () => (
     />
     <Tab.Screen
       name="Bookings"
-      component={BookingHistoryScreen}
+      component={BookingsStackNavigator}
       options={{
         tabBarIcon: ({ focused }) => (
           <TabIcon emoji="📋" label="Bookings" focused={focused} />

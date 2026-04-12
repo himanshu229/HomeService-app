@@ -130,6 +130,7 @@ export interface Booking {
   id: string;
   userId: string;
   serviceId: string;
+  service?: { id: string; name: string; category?: { id: string; name: string } };
   serviceName?: string;
   serviceCategory?: string;
   technician?: Technician;
@@ -222,6 +223,21 @@ export type MainTabParamList = {
   Services: undefined;
   Bookings: undefined;
   Profile: undefined;
+};
+
+export type BookingsStackParamList = {
+  BookingHistory: undefined;
+  BookingTracking: { bookingId: string };
+  Review: { bookingId: string; technicianId: string };
+};
+
+export type ServicesStackParamList = {
+  ServiceCategories: undefined;
+  ServiceList: { categoryId: string; categoryName: string };
+  ServiceDetail: { serviceId: string; service: ServiceItem };
+  Booking: { service: ServiceItem };
+  BookingConfirmation: { bookingId: string };
+  BookingTracking: { bookingId: string };
 };
 
 export type HomeStackParamList = {

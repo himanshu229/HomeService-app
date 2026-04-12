@@ -4,13 +4,13 @@ import { COLORS, FONTS, RADIUS, SHADOWS, SPACING } from '../../utils/theme';
 import { Booking } from '../../types';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; emoji: string }> = {
-  pending: { label: 'Pending', color: COLORS.warning, bg: '#FFF8E1', emoji: '⏳' },
-  confirmed: { label: 'Confirmed', color: COLORS.secondary, bg: '#E8F4FD', emoji: '✅' },
-  technician_assigned: { label: 'Assigned', color: COLORS.accent, bg: '#E8F5E9', emoji: '👨‍🔧' },
-  on_the_way: { label: 'On the Way', color: COLORS.info, bg: '#E3F2FD', emoji: '🚗' },
-  in_progress: { label: 'In Progress', color: COLORS.primary, bg: '#FFF3E0', emoji: '🔧' },
-  completed: { label: 'Completed', color: COLORS.success, bg: '#E8F5E9', emoji: '🎉' },
-  cancelled: { label: 'Cancelled', color: COLORS.error, bg: '#FFEBEE', emoji: '❌' },
+  PENDING: { label: 'Pending', color: COLORS.warning, bg: '#FFF8E1', emoji: '⏳' },
+  CONFIRMED: { label: 'Confirmed', color: COLORS.secondary, bg: '#E8F4FD', emoji: '✅' },
+  TECHNICIAN_ASSIGNED: { label: 'Assigned', color: COLORS.accent, bg: '#E8F5E9', emoji: '👨‍🔧' },
+  ON_THE_WAY: { label: 'On the Way', color: COLORS.info, bg: '#E3F2FD', emoji: '🚗' },
+  IN_PROGRESS: { label: 'In Progress', color: COLORS.primary, bg: '#FFF3E0', emoji: '🔧' },
+  COMPLETED: { label: 'Completed', color: COLORS.success, bg: '#E8F5E9', emoji: '🎉' },
+  CANCELLED: { label: 'Cancelled', color: COLORS.error, bg: '#FFEBEE', emoji: '❌' },
 };
 
 interface BookingCardProps {
@@ -21,9 +21,9 @@ interface BookingCardProps {
 }
 
 const BookingCard: React.FC<BookingCardProps> = ({ booking, onPress, onTrack, onReview }) => {
-  const status = STATUS_CONFIG[booking.status] || STATUS_CONFIG.pending;
-  const isActive = ['confirmed', 'technician_assigned', 'on_the_way', 'in_progress'].includes(booking.status);
-  const isCompleted = booking.status === 'completed';
+  const status = STATUS_CONFIG[booking.status] || STATUS_CONFIG.PENDING;
+  const isActive = ['CONFIRMED', 'TECHNICIAN_ASSIGNED', 'ON_THE_WAY', 'IN_PROGRESS'].includes(booking.status);
+  const isCompleted = booking.status === 'COMPLETED';
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -52,11 +52,11 @@ const BookingCard: React.FC<BookingCardProps> = ({ booking, onPress, onTrack, on
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailIcon}>🕐</Text>
-          <Text style={styles.detailText}>{booking.timeSlot}</Text>
+          <Text style={styles.detailText}>{booking.scheduledSlot}</Text>
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailIcon}>💰</Text>
-          <Text style={styles.detailText}>₹{booking.price}</Text>
+          <Text style={styles.detailText}>₹{booking.totalAmount}</Text>
         </View>
       </View>
 

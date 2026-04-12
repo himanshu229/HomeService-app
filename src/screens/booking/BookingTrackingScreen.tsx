@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,28 +11,40 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { HomeStackParamList } from '../../types';
+import { BookingsStackParamList } from '../../types';
 import { COLORS, FONTS, RADIUS, SHADOWS, SPACING } from '../../utils/theme';
 import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import { BOOKING_STATUS_STEPS } from '../../utils/constants';
 import { useAppSelector, useAppDispatch } from '../../store';
-import { cancelBooking } from '../../store/slices/bookingSlice';
+import { cancelBooking, fetchBookingById } from '../../store/slices/bookingSlice';
 
 type Props = {
-  navigation: NativeStackNavigationProp<HomeStackParamList, 'BookingTracking'>;
-  route: RouteProp<HomeStackParamList, 'BookingTracking'>;
+  navigation: NativeStackNavigationProp<BookingsStackParamList, 'BookingTracking'>;
+  route: RouteProp<BookingsStackParamList, 'BookingTracking'>;
 };
 
-const STATUS_ORDER = ['confirmed', 'technician_assigned', 'on_the_way', 'in_progress', 'completed'];
+const STATUS_ORDER = ['CONFIRMED', 'TECHNICIAN_ASSIGNED', 'ON_THE_WAY', 'IN_PROGRESS', 'COMPLETED'];
 
 const BookingTrackingScreen: React.FC<Props> = ({ navigation, route }) => {
   const { bookingId } = route.params;
   const dispatch = useAppDispatch();
   const { bookings, activeBooking } = useAppSelector(state => state.booking);
 
-  const booking = activeBooking || bookings.find(b => b.id === bookingId);
+  const booking = activeBooking?.id === bookingId
+    ? activeBooking
+    : bookings.find(b => b.id === bookingId);
+
   const currentStatusIndex = booking ? STATUS_ORDER.indexOf(booking.status) : 0;
+
+  // Fetch latest status on mount and poll every 10 s while booking is active
+  useEffect(() => {
+    dispatch(fetchBookingById(bookingId));
+    const id = setInterval(() => {
+      dispatch(fetchBookingById(bookingId));
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [bookingId]);
 
   const handleCancel = () => {
     Alert.alert(
@@ -91,14 +103,21 @@ const BookingTrackingScreen: React.FC<Props> = ({ navigation, route }) => {
                       isDone && styles.timelineDotDone,
                       isActive && styles.timelineDotActive,
                     ]}>
-                      <Text style={styles.timelineEmoji}>{isDone ? '✓' : step.emoji}</Text>
+                      <Text style={[
+                        styles.timelineEmoji,
+                        isDone && styles.timelineEmojiDone,
+                      ]}>{isDone ? '✓' : step.icon}</Text>
                     </View>
                     {index < BOOKING_STATUS_STEPS.length - 1 && (
                       <View style={[styles.timelineLine, isDone && styles.timelineLineDone]} />
                     )}
                   </View>
                   <View style={[styles.timelineContent, isActive && styles.timelineContentActive]}>
-                    <Text style={[styles.timelineLabel, isActive && styles.timelineLabelActive]}>
+                    <Text style={[
+                      styles.timelineLabel,
+                      isDone && styles.timelineLabelDone,
+                      isActive && styles.timelineLabelActive,
+                    ]}>
                       {step.label}
                     </Text>
                     {isActive && (
@@ -143,12 +162,12 @@ const BookingTrackingScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.sectionTitle}>Booking Details</Text>
           <View style={styles.detailsCard}>
             {[
-              { label: '🔧 Service', value: booking.serviceName },
+              { label: '🔧 Service', value: booking.service?.name ?? booking.serviceName },
               { label: '📅 Date', value: booking.scheduledDate },
-              { label: '⏰ Time', value: booking.timeSlot },
-              { label: '📍 Address', value: booking.address?.fullAddress },
+              { label: '⏰ Time', value: booking.scheduledSlot },
+              { label: '📍 Address', value: booking.address ? [booking.address.street, booking.address.city].filter(Boolean).join(', ') : undefined },
               { label: '💳 Payment', value: booking.paymentMethod?.toUpperCase() },
-              { label: '💰 Amount', value: `₹${booking.price}` },
+              { label: '💰 Amount', value: `₹${booking.totalAmount}` },
             ].map(item => (
               <View key={item.label} style={styles.detailRow}>
                 <Text style={styles.detailLabel}>{item.label}</Text>
@@ -159,7 +178,7 @@ const BookingTrackingScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
 
         {/* Cancel */}
-        {['confirmed', 'technician_assigned'].includes(booking.status) && (
+        {['CONFIRMED', 'TECHNICIAN_ASSIGNED'].includes(booking.status) && (
           <View style={styles.section}>
             <Button
               title="Cancel Booking"
@@ -171,7 +190,7 @@ const BookingTrackingScreen: React.FC<Props> = ({ navigation, route }) => {
         )}
 
         {/* Review */}
-        {booking.status === 'completed' && (
+        {booking.status === 'COMPLETED' && (
           <View style={styles.section}>
             <Button
               title="⭐ Rate & Review"
@@ -211,18 +230,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  timelineDotDone: { backgroundColor: COLORS.success + '20' },
-  timelineDotActive: { backgroundColor: COLORS.primary + '20', borderWidth: 2, borderColor: COLORS.primary },
+  timelineDotDone: { backgroundColor: COLORS.success },
+  timelineDotActive: { backgroundColor: COLORS.primary, borderWidth: 2, borderColor: COLORS.primaryDark },
   timelineEmoji: { fontSize: 16 },
+  timelineEmojiDone: { color: '#fff', fontWeight: '800', fontSize: 15 },
   timelineLine: { flex: 1, width: 2, backgroundColor: COLORS.gray200, marginTop: 4, marginBottom: 4 },
   timelineLineDone: { backgroundColor: COLORS.success },
   timelineContent: { flex: 1, paddingVertical: SPACING.sm, paddingBottom: SPACING.md },
   timelineContentActive: {
-    backgroundColor: COLORS.primary + '08',
+    backgroundColor: COLORS.primary + '12',
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.sm,
   },
   timelineLabel: { fontSize: FONTS.sizes.base, fontWeight: '600', color: COLORS.textSecondary },
+  timelineLabelDone: { color: COLORS.success, fontWeight: '700' },
   timelineLabelActive: { color: COLORS.primary, fontWeight: '800' },
   timelineActiveTag: { fontSize: FONTS.sizes.xs, color: COLORS.primary, fontWeight: '600', marginTop: 2 },
   // Technician

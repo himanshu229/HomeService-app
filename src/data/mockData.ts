@@ -1,17 +1,21 @@
-import { Booking, Review, ServiceItem, Technician, User } from '../types';
+import { Review, ServiceItem, Technician, User } from '../types';
 import { SERVICE_CATEGORIES } from '../utils/constants';
 
 export const MOCK_USER: User = {
   id: 'user_001',
-  name: 'Harpreet Singh',
+  firstName: 'Harpreet',
+  lastName: 'Singh',
+  gender: 'MALE',
+  dob: '1990-01-01',
   email: 'harpreet@example.com',
   phone: '9876543210',
+  isVerified: true,
   avatar: 'https://i.pravatar.cc/150?img=11',
   addresses: [
     {
       id: 'addr_001',
       label: 'Home',
-      fullAddress: '123, Sector 17, Near DLF Mall',
+      street: '123, Sector 17, Near DLF Mall',
       city: 'Gurgaon',
       state: 'Haryana',
       pincode: '122001',
@@ -20,7 +24,7 @@ export const MOCK_USER: User = {
     {
       id: 'addr_002',
       label: 'Work',
-      fullAddress: '456, Cyber City, Tower B, Floor 3',
+      street: '456, Cyber City, Tower B, Floor 3',
       city: 'Gurgaon',
       state: 'Haryana',
       pincode: '122002',
@@ -174,45 +178,6 @@ export const MOCK_REVIEWS: Review[] = [
     rating: 5,
     comment: 'Very prompt and efficient. Suresh identified the problem within 10 minutes. Highly recommended!',
     createdAt: '2025-06-07T16:45:00Z',
-  },
-];
-
-export const MOCK_BOOKINGS: Booking[] = [
-  {
-    id: 'book_001',
-    userId: 'user_001',
-    serviceId: 'ac_repair',
-    serviceName: 'AC Repair',
-    serviceCategory: 'AC Services',
-    technician: MOCK_TECHNICIANS[0],
-    status: 'completed',
-    scheduledDate: '2025-06-10',
-    timeSlot: '10:00 AM - 12:00 PM',
-    address: MOCK_USER.addresses[0],
-    notes: 'AC not cooling properly, making noise',
-    price: 299,
-    finalAmount: 299,
-    paymentMethod: 'upi',
-    paymentStatus: 'paid',
-    createdAt: '2025-06-09T10:00:00Z',
-    updatedAt: '2025-06-10T12:30:00Z',
-  },
-  {
-    id: 'book_002',
-    userId: 'user_001',
-    serviceId: 'ac_gas',
-    serviceName: 'AC Gas Refill',
-    serviceCategory: 'AC Services',
-    technician: MOCK_TECHNICIANS[0],
-    status: 'confirmed',
-    scheduledDate: '2025-06-15',
-    timeSlot: '02:00 PM - 04:00 PM',
-    address: MOCK_USER.addresses[0],
-    price: 799,
-    paymentMethod: 'cash',
-    paymentStatus: 'pending',
-    createdAt: '2025-06-13T09:00:00Z',
-    updatedAt: '2025-06-13T09:30:00Z',
   },
 ];
 

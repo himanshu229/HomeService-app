@@ -18,7 +18,6 @@ import Header from '../../components/common/Header';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import TimeSlotPicker from '../../components/booking/TimeSlotPicker';
-import { PAYMENT_METHODS } from '../../utils/constants';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { updateBookingDraft, createBooking } from '../../store/slices/bookingSlice';
 
@@ -39,10 +38,11 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState('');
   const [address, setAddress] = useState(user?.addresses?.[0] || {
-    id: 'new', label: 'Home', fullAddress: '', city: '', state: '', pincode: '', isDefault: false,
+    id: 'new', label: 'Home', street: '', city: '', state: '', pincode: '', isDefault: false,
   });
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  // COD-only: payment is always Cash on Delivery. Online payments are disabled.
+  const paymentMethod = 'CASH';
 
   // Generate next 7 days
   const dates = Array.from({ length: 7 }, (_, i) => {
@@ -63,13 +63,13 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Required', 'Please select a date and time slot');
         return;
       }
-      dispatch(updateBookingDraft({ scheduledDate: selectedDate, timeSlot: selectedSlot }));
+      dispatch(updateBookingDraft({ scheduledDate: selectedDate, scheduledSlot: selectedSlot }));
     } else if (step === 1) {
-      if (!address.fullAddress || !address.city || !address.pincode) {
+      if (!address.street || !address.city || !address.pincode) {
         Alert.alert('Required', 'Please fill in complete address details');
         return;
       }
-      dispatch(updateBookingDraft({ address: address as any, notes }));
+      dispatch(updateBookingDraft({ addressId: address.id !== 'new' ? address.id : undefined, notes }));
     }
     if (step < STEPS.length - 1) {
       setStep(s => s + 1);
@@ -82,15 +82,13 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
     dispatch(updateBookingDraft({ paymentMethod }));
     const result = await dispatch(
       createBooking({
-        serviceId: service.id,
-        serviceName: service.name,
-        serviceCategory: service.category || '',
-        price: service.price,
+        serviceId:    service.id,
         scheduledDate: selectedDate,
-        timeSlot: selectedSlot,
-        address: address as any,
+        scheduledSlot: selectedSlot,
+        addressId:    address.id !== 'new' ? address.id : undefined as any,
+        paymentMethod: 'CASH' as any,
+        totalAmount:  service.price,
         notes,
-        paymentMethod,
       })
     );
     if (createBooking.fulfilled.match(result)) {
@@ -180,7 +178,7 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
                     activeOpacity={0.8}
                   >
                     <Text style={styles.addrLabel}>{addr.isDefault ? '🏠' : '💼'} {addr.label}</Text>
-                    <Text style={styles.addrText}>{addr.fullAddress}</Text>
+                    <Text style={styles.addrText}>{addr.street}</Text>
                     <Text style={styles.addrCity}>{addr.city}, {addr.pincode}</Text>
                   </TouchableOpacity>
                 ))}
@@ -191,8 +189,8 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
             <Input
               label="Full Address"
               placeholder="House/Flat no., Street, Area"
-              value={address.fullAddress}
-              onChangeText={v => setAddress(a => ({ ...a, fullAddress: v }))}
+              value={address.street}
+              onChangeText={v => setAddress(a => ({ ...a, street: v }))}
               multiline
               numberOfLines={2}
               required
@@ -228,27 +226,20 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* Step 2: Payment */}
+        {/* Step 2: Payment — COD only */}
         {step === 2 && (
           <View>
-            <Text style={styles.sectionTitle}>Select Payment Method</Text>
-            {PAYMENT_METHODS.map(method => (
-              <TouchableOpacity
-                key={method.id}
-                style={[styles.paymentCard, paymentMethod === method.id && styles.paymentCardActive]}
-                onPress={() => setPaymentMethod(method.id)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.paymentIcon}>{method.icon}</Text>
-                <View style={styles.paymentInfo}>
-                  <Text style={styles.paymentName}>{method.name}</Text>
-                  <Text style={styles.paymentDesc}>{method.description}</Text>
-                </View>
-                <View style={[styles.radio, paymentMethod === method.id && styles.radioActive]}>
-                  {paymentMethod === method.id && <View style={styles.radioDot} />}
-                </View>
-              </TouchableOpacity>
-            ))}
+            <Text style={styles.sectionTitle}>Payment Method</Text>
+            <View style={[styles.paymentCard, styles.paymentCardActive]}>
+              <Text style={styles.paymentIcon}>💵</Text>
+              <View style={styles.paymentInfo}>
+                <Text style={styles.paymentName}>Cash on Delivery (COD)</Text>
+                <Text style={styles.paymentDesc}>Pay in cash when the technician arrives</Text>
+              </View>
+              <View style={[styles.radio, styles.radioActive]}>
+                <View style={styles.radioDot} />
+              </View>
+            </View>
 
             {/* Order Summary */}
             <View style={styles.summary}>
@@ -267,7 +258,7 @@ const BookingScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryKey}>Address</Text>
-                <Text style={styles.summaryVal} numberOfLines={2}>{address.fullAddress}</Text>
+                <Text style={styles.summaryVal} numberOfLines={2}>{address.street}</Text>
               </View>
               <View style={[styles.summaryRow, styles.summaryTotal]}>
                 <Text style={styles.totalKey}>Total Amount</Text>

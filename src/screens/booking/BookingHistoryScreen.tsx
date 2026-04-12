@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,33 +6,45 @@ import {
   FlatList,
   StatusBar,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HomeStackParamList } from '../../types';
+import { BookingsStackParamList } from '../../types';
 import { COLORS, FONTS, SPACING } from '../../utils/theme';
 import Header from '../../components/common/Header';
 import BookingCard from '../../components/booking/BookingCard';
 import EmptyState from '../../components/common/EmptyState';
 import { useAppSelector, useAppDispatch } from '../../store';
-import { setActiveBooking } from '../../store/slices/bookingSlice';
+import { setActiveBooking, fetchUserBookings } from '../../store/slices/bookingSlice';
 import { useNavigation } from '@react-navigation/native';
 
-type NavigationProp = NativeStackNavigationProp<HomeStackParamList>;
+type NavigationProp = NativeStackNavigationProp<BookingsStackParamList>;
 
 const FILTERS = ['All', 'Active', 'Completed', 'Cancelled'];
 
 const BookingHistoryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const dispatch = useAppDispatch();
-  const { bookings } = useAppSelector(state => state.booking);
+  const { bookings, isLoading } = useAppSelector(state => state.booking);
   const [activeFilter, setActiveFilter] = useState('All');
 
+  // Fetch on mount and every time this screen comes into focus
+  useEffect(() => {
+    dispatch(fetchUserBookings());
+    const unsubscribe = navigation.addListener('focus', () => {
+      dispatch(fetchUserBookings());
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  // Booking statuses from the server are uppercase (e.g. 'CONFIRMED', 'TECHNICIAN_ASSIGNED')
   const filteredBookings = bookings.filter(b => {
+    const s = b.status.toUpperCase();
     if (activeFilter === 'All') return true;
-    if (activeFilter === 'Active') return ['confirmed', 'technician_assigned', 'on_the_way', 'in_progress'].includes(b.status);
-    if (activeFilter === 'Completed') return b.status === 'completed';
-    if (activeFilter === 'Cancelled') return b.status === 'cancelled';
+    if (activeFilter === 'Active') return ['CONFIRMED', 'TECHNICIAN_ASSIGNED', 'ON_THE_WAY', 'IN_PROGRESS'].includes(s);
+    if (activeFilter === 'Completed') return s === 'COMPLETED';
+    if (activeFilter === 'Cancelled') return s === 'CANCELLED';
     return true;
   });
 
@@ -67,6 +79,14 @@ const BookingHistoryScreen: React.FC = () => {
         keyExtractor={b => b.id}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={() => dispatch(fetchUserBookings())}
+            colors={[COLORS.primary]}
+            tintColor={COLORS.primary}
+          />
+        }
         ListEmptyComponent={
           <EmptyState
             emoji="📋"

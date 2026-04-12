@@ -98,11 +98,9 @@ export const BOOKING_STATUS_STEPS = [
   { key: BOOKING_STATUS.COMPLETED, label: 'Completed', icon: '🎉' },
 ];
 
+// COD-only: only Cash on Delivery is accepted. Online payments are disabled.
 export const PAYMENT_METHODS = [
-  { id: 'upi', name: 'UPI', icon: '📱', description: 'Google Pay, PhonePe, Paytm' },
-  { id: 'card', name: 'Card', icon: '💳', description: 'Credit/Debit Card' },
-  { id: 'cash', name: 'Cash on Service', icon: '💵', description: 'Pay after service' },
-  { id: 'wallet', name: 'Wallet', icon: '👜', description: 'SummerFix Wallet' },
+  { id: 'CASH', name: 'Cash on Delivery', icon: '💵', description: 'Pay in cash when the technician arrives' },
 ];
 
 import { REGEX } from './common';

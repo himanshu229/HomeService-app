@@ -1,6 +1,5 @@
 import api from './api';
 import { Booking, BookingDraft } from '../types';
-import { MOCK_BOOKINGS } from '../data/mockData';
 
 export const bookingAPI = {
   createBooking: async (draft: BookingDraft): Promise<Booking> => {
@@ -13,16 +12,14 @@ export const bookingAPI = {
         id: `book_${Date.now()}`,
         userId: 'user_001',
         serviceId: draft.serviceId,
-        serviceName: draft.serviceName,
-        serviceCategory: draft.serviceCategory,
-        status: 'confirmed',
+        status: 'CONFIRMED',
         scheduledDate: draft.scheduledDate,
-        timeSlot: draft.timeSlot,
-        address: draft.address,
+        scheduledSlot: draft.scheduledSlot,
+        addressId: draft.addressId,
         notes: draft.notes,
-        price: draft.price,
+        totalAmount: draft.totalAmount,
         paymentMethod: draft.paymentMethod,
-        paymentStatus: draft.paymentMethod === 'cash' ? 'pending' : 'paid',
+        paymentStatus: draft.paymentMethod === 'CASH' ? 'PENDING' : 'PAID',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -31,23 +28,13 @@ export const bookingAPI = {
   },
 
   getUserBookings: async (): Promise<Booking[]> => {
-    try {
-      const res = await api.get('/bookings/my-bookings');
-      return res.data.data;
-    } catch {
-      return MOCK_BOOKINGS;
-    }
+    const res = await api.get('/bookings/my-bookings');
+    return res.data.data;
   },
 
   getBookingById: async (id: string): Promise<Booking> => {
-    try {
-      const res = await api.get(`/bookings/${id}`);
-      return res.data.data;
-    } catch {
-      const booking = MOCK_BOOKINGS.find(b => b.id === id);
-      if (!booking) throw new Error('Booking not found');
-      return booking;
-    }
+    const res = await api.get(`/bookings/${id}`);
+    return res.data.data;
   },
 
   cancelBooking: async (id: string): Promise<void> => {

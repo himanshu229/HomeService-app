@@ -40,7 +40,7 @@ const BookingConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
           <Text style={styles.title}>Booking Confirmed!</Text>
-          <Text style={styles.bookingId}>Booking ID: #{bookingId.slice(-8).toUpperCase()}</Text>
+          <Text style={styles.bookingId}>Booking ID: #{(bookingId ?? '').slice(-8).toUpperCase()}</Text>
           <Text style={styles.subtitle}>
             Your service request has been confirmed. A technician will be assigned shortly.
           </Text>
@@ -53,7 +53,7 @@ const BookingConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.cardIcon}>🔧</Text>
               <View style={styles.cardContent}>
                 <Text style={styles.cardLabel}>Service</Text>
-                <Text style={styles.cardValue}>{booking.serviceName}</Text>
+                <Text style={styles.cardValue}>{booking.service?.name ?? booking.serviceName ?? ''}</Text>
               </View>
             </View>
             <View style={styles.divider} />
@@ -61,7 +61,7 @@ const BookingConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.cardIcon}>📅</Text>
               <View style={styles.cardContent}>
                 <Text style={styles.cardLabel}>Scheduled</Text>
-                <Text style={styles.cardValue}>{booking.scheduledDate} · {booking.timeSlot}</Text>
+                <Text style={styles.cardValue}>{booking.scheduledDate} · {booking.scheduledSlot}</Text>
               </View>
             </View>
             <View style={styles.divider} />
@@ -70,7 +70,7 @@ const BookingConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.cardContent}>
                 <Text style={styles.cardLabel}>Service Address</Text>
                 <Text style={styles.cardValue} numberOfLines={2}>
-                  {booking.address?.fullAddress}
+                  {[booking.address?.street, booking.address?.city].filter(Boolean).join(', ')}
                 </Text>
               </View>
             </View>
@@ -79,7 +79,7 @@ const BookingConfirmationScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={styles.cardIcon}>💰</Text>
               <View style={styles.cardContent}>
                 <Text style={styles.cardLabel}>Amount</Text>
-                <Text style={[styles.cardValue, { color: COLORS.primary }]}>₹{booking.price}</Text>
+                <Text style={[styles.cardValue, { color: COLORS.primary }]}>₹{booking.totalAmount}</Text>
               </View>
             </View>
           </Animated.View>
